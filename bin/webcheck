@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+$:.unshift(File.join(File.dirname(__FILE__), "/../lib"))
+require 'webcheck'
+
+if ARGV.empty?
+  STDERR.puts "You need to provide a URL"
+  STDERR.puts "USAGE: #{$0} [options] [url]"
+else
+  webcheck = WebCheck::PageChecker.new
+  result = webcheck.check(ARGV.first, true, 30)
+  fastest_link, fastest_time, slowest_link, slowest_time = result.peaks
+
+  STDOUT.puts '----------------------------------------'
+  STDOUT.puts 'Loaded pages:       %d' % [result.size()]
+  STDOUT.puts 'Average load time:  %d ms' % [result.avg()]
+  STDOUT.puts 'Fastest load time:  %d ms %s' % [fastest_time, fastest_link]
+  STDOUT.puts 'Slowest load time:  %d ms %s' % [slowest_time, slowest_link]
+end
