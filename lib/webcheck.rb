@@ -7,21 +7,20 @@ module WebCheck
 
   VERSION = '1.0.1'
 
+  #
+  # Class representing the result of a checked website
+  #
+  class PageCheckResult
 
-	#
-	# Class representing the result of a checked website
-	#
-	class PageCheckResult
-
-		def initialize
-			@links = {}
-			@main_page_load_time = 0
+    def initialize
+      @links = {}
+      @main_page_load_time = 0
     end
 
     # Add a page to the results
     # @param [String] link
     # @param [Integer] load_time
-    def add_link( link, load_time )
+    def add_link(link, load_time)
       @links[link] = load_time
     end
 
@@ -62,24 +61,24 @@ module WebCheck
       return fastest_link, fastest_time, slowest_link, slowest_time
     end
 
-	end
+  end
 
-	# 
-	# Class that does the magic
-	#
-	class PageChecker
+  #
+  # Class that does the magic
+  #
+  class PageChecker
 
     # @return [PageCheckResult]
-		def check( url, debug_output=false, num_links=30 )
+    def check(url, debug_output=false, num_links=30)
 
       uri = URI(url)
-			result = PageCheckResult.new
+      result = PageCheckResult.new
 
       if debug_output
         puts '--> Starting to load pages'
       end
 
-			response, load_time = fetch(url)
+      response, load_time = fetch(url)
       result.add_link(url, load_time)
 
       # Return http error
@@ -90,10 +89,10 @@ module WebCheck
         return result
       end
 
-      # Collect page statistics
+      # Fetch links on page
       links = find_links(uri, response.body)[0..num_links]
       i = 0
-      links.each{ |link|
+      links.each { |link|
         if debug_output
           print ("." * i) + link
           $stdout.flush
@@ -106,27 +105,27 @@ module WebCheck
         i += 1
       }
 
-			return result
+      return result
     end
 
   private
 
-    def is_error ( response )
+    def is_error (response)
       return response.code.to_i > 299
     end
 
-		def fetch( url )
+    def fetch(url)
 
       time_begin = Time.now
 
-      options = { :headers => {'User-Agent' => 'Ruby WebCheck ' + VERSION}}
+      options = {:headers => {'User-Agent' => 'Ruby WebCheck ' + VERSION}}
       response = HTTParty.get(url, options)
 
       load_time = ((Time.now - time_begin) * 1000).to_i
 
       return response, load_time
 
-		end
+    end
 
     # @param [URI] uri
     # @param [String] content
@@ -136,11 +135,11 @@ module WebCheck
       # okey... lets hax this... todo: get hold of a regex that works...
       regex = /href=\"(.*)\"/ix
       links = Array.new
-      content.scan( regex ).each { |linker|
+      content.scan(regex).each { |linker|
         link = linker[0].split('"')[0]
         if link != nil and is_valid(link)
           if link[0] == '/'
-            links.push( '%s://%s/%s' % [uri.scheme , uri.host, ltrim(link, '/')] )
+            links.push('%s://%s/%s' % [uri.scheme, uri.host, ltrim(link, '/')])
           elsif link.index(uri.host)
             links.push(link)
           end
@@ -149,7 +148,7 @@ module WebCheck
       return links
     end
 
-    def is_valid( url )
+    def is_valid(url)
       valid = true
       url = url.downcase
       invalid = ['.jpg', '.jpeg', '.png', '.gif', '.ico', '.xml', '.php', '.css', '.js', 'mailto:']
@@ -168,7 +167,7 @@ module WebCheck
         n += 1
       end
       if n > 0
-        str.slice!(0 , n)
+        str.slice!(0, n)
       end
       return str
     end
