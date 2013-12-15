@@ -140,16 +140,14 @@ module WebCheck
     end
 
     def is_valid(url)
-      valid = true
       url = url.downcase
       invalid = ['.jpg', '.jpeg', '.png', '.gif', '.ico', '.xml', '.php', '.css', '.js', 'mailto:']
       invalid.each { |ext|
         if url.index(ext)
-          valid = false
-          break
+          return false
         end
       }
-      return valid
+      return true
     end
 
     def ltrim(str, character)
