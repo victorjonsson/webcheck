@@ -2,4 +2,4 @@
 
 *Check your website, man!*
 
-![WebCheck console](http://victorjonsson.se/webcheck.npg)
+![WebCheck console](http://victorjonsson.se/webcheck.png)
