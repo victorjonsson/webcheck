@@ -16,9 +16,9 @@ Since this gem isn't published you'll need to install it manually.
 
 `$ gem install`
 
-**3)** Add the bin directory of webcheck to your $PATH by and give the file bin/webcheck execution permission
+**3)** Add the bin directory of webcheck to your $PATH and give the file bin/webcheck execution permission
 
-First chmod the fil
+First chmod the executable
 
 `$ chmod +x bin/webcheck`
 
