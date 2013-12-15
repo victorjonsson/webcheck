@@ -14,7 +14,7 @@ Since this gem isn't published you'll need to install it manually.
 
 **2)** Navigate to the directory in the console and install the gems
 
-`$ gem install`
+`$ bundler install`
 
 **3)** Add the bin directory of webcheck to your $PATH and give the file bin/webcheck execution permission
 
