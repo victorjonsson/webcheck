@@ -1,6 +1,5 @@
 require 'rubygems'
 require 'HTTParty'
-require 'colorize'
 
 module WebCheck
 
@@ -56,43 +55,57 @@ module WebCheck
   #
   class PageChecker
 
+    # @param [Object] debug
+    def initialize(debug=false)
+      @debug = debug
+      @output_lambda = lambda { |message, is_error=nil|
+        print(message.green)
+        $stdout.flush
+      }
+    end
+
+    # This method makes it possible to have your own debug procedure
+    # The function given will be executed when this class sends debug
+    # messages, but it will only be invoked in case @debug is set
+    # true upon initialization
+    #
+    # @param output_lambda
+    def output_method(output_lambda)
+      @output_lambda = output_lambda
+    end
 
     # @param [String] url
-    # @param [Object] debug_output
     # @param [Integer] num_pages
     # @return [PageCheckResult]
-    def check(url, debug_output=false, num_pages=30)
+    def check(url, num_pages=30)
 
       uri = URI(url)
       result = PageCheckResult.new
 
-      if debug_output
-        puts '--> Starting to load pages'
-      end
+      debug('--> Starting to load pages')
 
       response, load_time = fetch(url)
       result.add_page(url, load_time)
 
-      # Return http error
+      # http error
       if is_error(response)
-        if debug_output
-          puts ('[Main page error '+response.code.to_s+']').red
-        end
+        debug('[Main page error '+response.code.to_s+']', true)
         return result
       end
 
       # Fetch URL's on page
-      links = find_urls(uri, response.body)[0..num_pages]
+      page_urls = find_urls(uri, response.body)[0..num_pages]
       i = 0
-      links.each { |url|
-        if debug_output
-          print ("." * i) + url
-          $stdout.flush
-        end
+      page_urls.each { |url|
+        debug(("." * i) + url, nil, false)
         response, load_time = fetch(url)
-        if debug_output
-          puts is_error(response) ? (' [error '+response.code.to_s+']').red : ' [ok]'.green
+
+        if is_error(response)
+          debug(' [error '+response.code.to_s+']', true)
+        else
+          debug(' [ok]', false)
         end
+
         result.add_page(url, load_time)
         i += 1
       }
@@ -101,6 +114,12 @@ module WebCheck
     end
 
   private
+
+    def debug(message, is_error=nil, add_break=true)
+      if @debug
+        @output_lambda.call(message + (add_break ? "\n":''), is_error)
+      end
+    end
 
     def is_error (response)
       return response.code.to_i > 299

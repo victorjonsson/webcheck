@@ -6,7 +6,7 @@
 
 ## Installation
 
-Since this gem isn't yet published you'll need to install it manually.
+Since this gem isn't published you'll need to install it manually.
 
 **1)** Clone the project
 
@@ -16,6 +16,12 @@ Since this gem isn't yet published you'll need to install it manually.
 
 `$ gem install`
 
-**3)** Add the bin directory of webcheck to your $PATH by calling the following in the console
+**3)** Add the bin directory of webcheck to your $PATH by and give the file bin/webcheck execution permission
+
+First chmod the fil
+
+`$ chmod +x bin/webcheck`
+
+And then add the bin directory to your $PATH
 
 `$ echo export PATH="/path/to/your/downloaded/webcheck/bin:$PATH"`

@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 
 $:.unshift(File.join(File.dirname(__FILE__), "/../lib"))
+
 require 'webcheck'
+require 'colorize'
 
 if ARGV.empty?
   STDERR.puts "You need to provide a URL"
@@ -14,10 +16,25 @@ else
   if url.index('http') != 0
     url = 'http://'+url
   end
-  webcheck = WebCheck::PageChecker.new
-  result = webcheck.check(url, true, 30)
+
+  # Setup webcheck and output method
+  webcheck = WebCheck::PageChecker.new(true)
+  webcheck.output_method(lambda { |message, is_error=nil|
+    if is_error === true
+      STDOUT.print message.red
+    elsif is_error === false
+      STDOUT.print message.green
+    else
+      STDOUT.print message
+    end
+    STDOUT.flush
+  })
+
+  # Check website
+  result = webcheck.check(url, 30)
   fastest_link, fastest_time, slowest_link, slowest_time = result.peaks
 
+  # Output result
   STDOUT.puts '----------------------------------------'
   STDOUT.puts 'Loaded pages:       %d' % [result.size]
   STDOUT.puts 'Average load time:  %d ms' % [result.avg]
