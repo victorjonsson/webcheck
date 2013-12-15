@@ -1,4 +1,3 @@
-require 'net/http'
 require 'rubygems'
 require 'HTTParty'
 require 'colorize'
@@ -10,55 +9,44 @@ module WebCheck
   #
   # Class representing the result of a checked website
   #
-  class PageCheckResult
-
-    def initialize
-      @links = {}
-      @main_page_load_time = 0
-    end
+  class PageCheckResult < Hash
 
     # Add a page to the results
-    # @param [String] link
+    # @param [String] url
     # @param [Integer] load_time
-    def add_link(link, load_time)
-      @links[link] = load_time
-    end
-
-    # Returns the number of pages checked
-    # @return [Integer]
-    def size
-      return @links.size
+    def add_page(url, load_time)
+      self[url] = load_time
     end
 
     # Returns average loading time in milliseconds
     # @return [Integer]
     def avg
       total_time = 0
-      for key in @links.keys
-        total_time += @links[key]
+      for url in self.keys
+        total_time += self[url]
       end
-      return total_time / @links.size
+      return total_time / self.size
     end
 
     # Returns the fastest and the slowest results
-    # @return [fastest_link:String, fastest_time:Integer, slowest_link:String, slowest_time:Integer]
+    # @return [fastest_url:String, fastest_time:Integer, slowest_url:String, slowest_time:Integer]
     def peaks
-      fastest_link = ''
-      slowest_link = ''
+      fastest_url = ''
+      slowest_url = ''
       slowest_time = 0
       fastest_time = 0
 
-      for link in @links.keys
-        if @links[link] > slowest_time
-          slowest_time = @links[link]
-          slowest_link = link
-        elsif fastest_time == 0 or @links[link] < fastest_time
-          fastest_time = @links[link]
-          fastest_link = link
+      for url in self.keys
+        if self[url] > slowest_time
+          slowest_time = self[url]
+          slowest_url = url
+        elsif fastest_time == 0 or self[url] < fastest_time
+          fastest_time = self[url]
+          fastest_url = url
         end
       end
 
-      return fastest_link, fastest_time, slowest_link, slowest_time
+      return fastest_url, fastest_time, slowest_url, slowest_time
     end
 
   end
@@ -68,8 +56,12 @@ module WebCheck
   #
   class PageChecker
 
+
+    # @param [String] url
+    # @param [Object] debug_output
+    # @param [Integer] num_pages
     # @return [PageCheckResult]
-    def check(url, debug_output=false, num_links=30)
+    def check(url, debug_output=false, num_pages=30)
 
       uri = URI(url)
       result = PageCheckResult.new
@@ -79,7 +71,7 @@ module WebCheck
       end
 
       response, load_time = fetch(url)
-      result.add_link(url, load_time)
+      result.add_page(url, load_time)
 
       # Return http error
       if is_error(response)
@@ -89,19 +81,19 @@ module WebCheck
         return result
       end
 
-      # Fetch links on page
-      links = find_links(uri, response.body)[0..num_links]
+      # Fetch URL's on page
+      links = find_urls(uri, response.body)[0..num_pages]
       i = 0
-      links.each { |link|
+      links.each { |url|
         if debug_output
-          print ("." * i) + link
+          print ("." * i) + url
           $stdout.flush
         end
-        response, load_time = fetch(link)
+        response, load_time = fetch(url)
         if debug_output
           puts is_error(response) ? (' [error '+response.code.to_s+']').red : ' [ok]'.green
         end
-        result.add_link(link, load_time)
+        result.add_page(url, load_time)
         i += 1
       }
 
@@ -124,28 +116,27 @@ module WebCheck
       load_time = ((Time.now - time_begin) * 1000).to_i
 
       return response, load_time
-
     end
 
     # @param [URI] uri
     # @param [String] content
     # @return [Array]
-    def find_links(uri, content)
+    def find_urls(uri, content)
       #regex = /href=\"(^(http|https):\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(([0-9]{1,5})?\/.*)?$)/ix
-      # okey... lets hax this... todo: get hold of a regex that works...
+      # okey... lets hax this... todo: write a regex that works...
       regex = /href=\"(.*)\"/ix
-      links = Array.new
-      content.scan(regex).each { |linker|
-        link = linker[0].split('"')[0]
-        if link != nil and is_valid(link)
-          if link[0] == '/'
-            links.push('%s://%s/%s' % [uri.scheme, uri.host, ltrim(link, '/')])
-          elsif link.index(uri.host)
-            links.push(link)
+      page_urls = Array.new
+      content.scan(regex).each { |url|
+        url = url[0].split('"')[0]
+        if url != nil and is_valid(url)
+          if url[0] == '/'
+            page_urls.push('%s://%s/%s' % [uri.scheme, uri.host, ltrim(url, '/')])
+          elsif url.index(uri.host)
+            page_urls.push(url)
           end
         end
       }
-      return links
+      return page_urls
     end
 
     def is_valid(url)
