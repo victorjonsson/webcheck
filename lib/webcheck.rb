@@ -59,7 +59,7 @@ module WebCheck
     def initialize(debug=false)
       @debug = debug
       @output_lambda = lambda { |message, is_error=nil|
-        print(message.green)
+        print(message)
         $stdout.flush
       }
     end
