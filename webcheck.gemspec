@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 $:.unshift(File.join(File.dirname(__FILE__), "/lib"))
-require 'webcheck'
+require Dir.pwd + '/lib/webcheck'
 
 Gem::Specification.new do |s|
   s.name        = "webcheck"

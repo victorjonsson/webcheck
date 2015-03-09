@@ -1,5 +1,10 @@
 require 'rubygems'
-require 'HTTParty'
+
+begin
+  require 'HTTParty'  
+rescue LoadError
+  # not yet installed
+end
 
 module WebCheck
 
